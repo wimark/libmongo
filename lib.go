@@ -80,6 +80,15 @@ func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
 	return sess.DB("").C(coll).Update(bson.M{"_id": id}, bson.M{"$set": v})
 }
 
+func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
+	sess := db.sess.Copy()
+	defer sess.Close()
+
+	var _, err = sess.DB("").C(coll).Upsert(bson.M{"_id": id}, v)
+
+	return err
+}
+
 func (db *MongoDb) Remove(coll string, id interface{}) error {
 	sess := db.sess.Copy()
 	defer sess.Close()
