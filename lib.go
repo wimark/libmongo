@@ -209,6 +209,15 @@ func (db *MongoDb) RemoveWithQuery(coll string, query interface{}) error {
 	return err
 }
 
+func (db *MongoDb) RemoveWithIDs(coll string, ids interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	_, err := sess.DB("").C(coll).RemoveAll(bson.M{"_id": bson.M{"$in": ids}})
+
+	return err
+}
+
 func (db *MongoDb) SessExec(cb func(*mgo.Session)) {
 	var sess = db.sess.Copy()
 	defer sess.Close()
