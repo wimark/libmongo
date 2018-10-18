@@ -39,15 +39,38 @@ func (db *MongoDb) Disconnect() {
 	db.sess.Close()
 }
 
+func (db *MongoDb) CreateIndexKey(coll string, key ...string) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).EnsureIndexKey(key...)
+
+}
+
+func (db *MongoDb) CreateIndexKeys(coll string, keys ...string) error {
+	var err error
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	for _, key := range keys {
+		err = sess.DB("").C(coll).EnsureIndexKey(key)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (db *MongoDb) Insert(coll string, v ...interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	return sess.DB("").C(coll).Insert(v...)
 }
 
 func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	bsonQuery := bson.M{}
@@ -59,29 +82,64 @@ func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}
 	return sess.DB("").C(coll).Find(bsonQuery).All(v)
 }
 
+func (db *MongoDb) Pipe(coll string, query []interface{}, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().All(v)
+}
+
 func (db *MongoDb) FindById(coll string, id string, v interface{}) bool {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	return mgo.ErrNotFound != sess.DB("").C(coll).FindId(id).One(v)
 }
 
 func (db *MongoDb) FindAll(coll string, v interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	return sess.DB("").C(coll).Find(bson.M{}).All(v)
 }
 
+func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).One(v)
+}
+
+func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).All(v)
+}
+
 func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	return sess.DB("").C(coll).Update(bson.M{"_id": id}, bson.M{"$set": v})
 }
 
+func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Update(query, set)
+}
+
+func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Update(query, set)
+}
+
 func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	var _, err = sess.DB("").C(coll).Upsert(bson.M{"_id": id}, v)
@@ -90,7 +148,7 @@ func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
 }
 
 func (db *MongoDb) Remove(coll string, id interface{}) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	_, err := sess.DB("").C(coll).RemoveAll(bson.M{"_id": id})
@@ -99,10 +157,20 @@ func (db *MongoDb) Remove(coll string, id interface{}) error {
 }
 
 func (db *MongoDb) RemoveAll(coll string) error {
-	sess := db.sess.Copy()
+	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	_, err := sess.DB("").C(coll).RemoveAll(bson.M{})
+
+	return err
+}
+
+func (db *MongoDb) RemoveWithQuery(coll string, query interface{}) error {
+	var err error
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	_, err = sess.DB("").C(coll).RemoveAll(query)
 
 	return err
 }
