@@ -15,6 +15,9 @@ type MongoDb struct {
 	sess *mgo.Session
 }
 
+type M bson.M
+type D bson.D
+
 func (db *MongoDb) Connect(dsn string) error {
 	var err error
 
@@ -82,7 +85,7 @@ func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}
 	return sess.DB("").C(coll).Find(bsonQuery).All(v)
 }
 
-func (db *MongoDb) Pipe(coll string, query []interface{}, v interface{}) error {
+func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -104,6 +107,20 @@ func (db *MongoDb) FindAll(coll string, v interface{}) error {
 }
 
 func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).One(v)
+}
+
+func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{}, order string, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).Sort(order).One(v)
+}
+
+func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{}) error {
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -145,6 +162,13 @@ func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
 	var _, err = sess.DB("").C(coll).Upsert(bson.M{"_id": id}, v)
 
 	return err
+}
+
+func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Update(query, set)
 }
 
 func (db *MongoDb) Remove(coll string, id interface{}) error {
