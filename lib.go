@@ -92,6 +92,13 @@ func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().All(v)
 }
 
+func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().One(v)
+}
+
 func (db *MongoDb) FindById(coll string, id string, v interface{}) bool {
 	var sess = db.sess.Copy()
 	defer sess.Close()
@@ -149,10 +156,13 @@ func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface
 }
 
 func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interface{}) error {
+	var err error
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Update(query, set)
+	_, err = sess.DB("").C(coll).UpdateAll(query, set)
+
+	return err
 }
 
 func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
