@@ -127,6 +127,13 @@ func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{}, order st
 	return sess.DB("").C(coll).Find(query).Sort(order).One(v)
 }
 
+func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{}, order string, v interface{}) error {
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).Sort(order).All(v)
+}
+
 func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{}) error {
 	var sess = db.sess.Copy()
 	defer sess.Close()
