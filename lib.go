@@ -18,6 +18,11 @@ type MongoDb struct {
 type M bson.M
 type D bson.D
 
+func NewConnection(dsn string) (*MongoDb, error) {
+	var db = MongoDb{}
+	return &db, db.Connect(dsn)
+}
+
 func (db *MongoDb) Connect(dsn string) error {
 	var err error
 
