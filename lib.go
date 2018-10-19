@@ -190,7 +190,9 @@ func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Update(query, set)
+	var _, err = sess.DB("").C(coll).Upsert(query, set)
+
+	return err
 }
 
 func (db *MongoDb) Remove(coll string, id interface{}) error {
