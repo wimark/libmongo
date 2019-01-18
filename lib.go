@@ -1,6 +1,7 @@
 package libmongo
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/globalsign/mgo"
@@ -9,6 +10,7 @@ import (
 
 const (
 	mongoConnectionTimeout = 5 * time.Second
+	ERROR_NOT_CONNECTED    = "DB is not connected"
 )
 
 type MongoDb struct {
@@ -21,6 +23,10 @@ type D bson.D
 func NewConnection(dsn string) (*MongoDb, error) {
 	var db = MongoDb{}
 	return &db, db.Connect(dsn)
+}
+
+func (db *MongoDb) IsConnected() bool {
+	return db.sess != nil
 }
 
 func (db *MongoDb) Connect(dsn string) error {
@@ -44,10 +50,15 @@ func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration) error {
 }
 
 func (db *MongoDb) Disconnect() {
-	db.sess.Close()
+	if db.IsConnected() {
+		db.sess.Close()
+	}
 }
 
 func (db *MongoDb) CreateIndexKey(coll string, key ...string) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -56,6 +67,9 @@ func (db *MongoDb) CreateIndexKey(coll string, key ...string) error {
 }
 
 func (db *MongoDb) CreateIndexKeys(coll string, keys ...string) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var err error
 	var sess = db.sess.Copy()
 	defer sess.Close()
@@ -71,6 +85,9 @@ func (db *MongoDb) CreateIndexKeys(coll string, keys ...string) error {
 }
 
 func (db *MongoDb) Insert(coll string, v ...interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -78,6 +95,9 @@ func (db *MongoDb) Insert(coll string, v ...interface{}) error {
 }
 
 func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -91,6 +111,9 @@ func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}
 }
 
 func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -98,6 +121,9 @@ func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 }
 
 func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -105,6 +131,9 @@ func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
 }
 
 func (db *MongoDb) FindById(coll string, id string, v interface{}) bool {
+	if !db.IsConnected() {
+		return false
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -112,6 +141,9 @@ func (db *MongoDb) FindById(coll string, id string, v interface{}) bool {
 }
 
 func (db *MongoDb) FindAll(coll string, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -119,6 +151,9 @@ func (db *MongoDb) FindAll(coll string, v interface{}) error {
 }
 
 func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -126,6 +161,9 @@ func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) 
 }
 
 func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{}, order string, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -133,13 +171,29 @@ func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{}, order st
 }
 
 func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{}, order string, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
 	return sess.DB("").C(coll).Find(query).Sort(order).All(v)
 }
 
+func (db *MongoDb) FindWithQuerySortLimitAll(coll string, query interface{}, order string, limit int, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).Sort(order).Limit(limit).All(v)
+}
+
 func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -147,6 +201,9 @@ func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{
 }
 
 func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -154,6 +211,9 @@ func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{
 }
 
 func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -161,6 +221,9 @@ func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
 }
 
 func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -168,6 +231,9 @@ func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface
 }
 
 func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var err error
 	var sess = db.sess.Copy()
 	defer sess.Close()
@@ -178,6 +244,9 @@ func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interf
 }
 
 func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -187,6 +256,9 @@ func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
 }
 
 func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -196,6 +268,9 @@ func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface
 }
 
 func (db *MongoDb) Remove(coll string, id interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -214,6 +289,9 @@ func (db *MongoDb) RemoveAll(coll string) error {
 }
 
 func (db *MongoDb) RemoveWithQuery(coll string, query interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var err error
 	var sess = db.sess.Copy()
 	defer sess.Close()
@@ -224,6 +302,9 @@ func (db *MongoDb) RemoveWithQuery(coll string, query interface{}) error {
 }
 
 func (db *MongoDb) RemoveWithIDs(coll string, ids interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
@@ -233,6 +314,9 @@ func (db *MongoDb) RemoveWithIDs(coll string, ids interface{}) error {
 }
 
 func (db *MongoDb) SessExec(cb func(*mgo.Session)) {
+	if !db.IsConnected() {
+		return
+	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
