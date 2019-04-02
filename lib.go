@@ -11,14 +11,15 @@ import (
 const (
 	mongoConnectionTimeout = 5 * time.Second
 	ERROR_NOT_CONNECTED    = "DB is not connected"
+	ERROR_NOT_VALID        = "Query is not valid"
 )
 
 type MongoDb struct {
 	sess *mgo.Session
 }
 
-type M bson.M
-type D bson.D
+type M = bson.M
+type D = bson.D
 
 func NewConnection(dsn string) (*MongoDb, error) {
 	var db = MongoDb{}
@@ -90,6 +91,31 @@ func (db *MongoDb) Insert(coll string, v ...interface{}) error {
 	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
+
+	return sess.DB("").C(coll).Insert(v...)
+}
+
+func (db *MongoDb) InsertBulk(coll string, v ...interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	var err error
+	var bulk = sess.DB("").C(coll).Bulk()
+	bulk.Unordered()
+	bulk.Insert(v...)
+	_, err = bulk.Run()
+
+	return err
+}
+
+func (db *MongoDb) InsertSess(coll string, sess *mgo.Session,
+	v ...interface{}) error {
+	if !db.IsConnected() || sess == nil {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
 
 	return sess.DB("").C(coll).Insert(v...)
 }
@@ -267,6 +293,23 @@ func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface
 	return err
 }
 
+func (db *MongoDb) UpsertMulti(coll string, id []interface{}, v []interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
+	if len(id) != len(v) {
+		return fmt.Errorf("%s", ERROR_NOT_VALID)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+	var index = 0
+	for index < len(id) {
+		sess.DB("").C(coll).Upsert(bson.M{"_id": id[index]}, v[index])
+		index += 1
+	}
+	return nil
+}
+
 func (db *MongoDb) Remove(coll string, id interface{}) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
@@ -321,6 +364,20 @@ func (db *MongoDb) SessExec(cb func(*mgo.Session)) {
 	defer sess.Close()
 
 	cb(sess)
+}
+
+func (db *MongoDb) SessCopy() *mgo.Session {
+	if !db.IsConnected() {
+		return nil
+	}
+	return db.sess.Copy()
+}
+
+func (db *MongoDb) SessClose(sess *mgo.Session) {
+	if !db.IsConnected() || sess == nil {
+		return
+	}
+	sess.Close()
 }
 
 func GetDb() *MongoDb { return &MongoDb{} }
