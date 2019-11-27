@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	mongoConnectionTimeout = 5 * time.Second
+	mongoConnectionTimeout = 15 * time.Second
 	ERROR_NOT_CONNECTED    = "DB is not connected"
 	ERROR_NOT_VALID        = "Query is not valid"
 )
@@ -24,6 +24,11 @@ type D = bson.D
 func NewConnection(dsn string) (*MongoDb, error) {
 	var db = MongoDb{}
 	return &db, db.Connect(dsn)
+}
+
+func NewConnectionWithTimeout(dsn string, timeout time.Duration) (*MongoDb, error) {
+	var db = MongoDb{}
+	return &db, db.ConnectWithTimeout(dsn, timeout)
 }
 
 func (db *MongoDb) IsConnected() bool {
