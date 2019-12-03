@@ -241,6 +241,16 @@ func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{
 	return sess.DB("").C(coll).Find(query).All(v)
 }
 
+func (db *MongoDb) FindWithQuerySortLimitOffsetAll(coll string, query interface{}, sort string, limit int, offset int, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Find(query).Sort(sort).Limit(limit).Skip(offset).All(v)
+}
+
 func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", ERROR_NOT_CONNECTED)
