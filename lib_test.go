@@ -5,7 +5,6 @@ import (
 )
 
 func TestNullDb(t *testing.T) {
-
 	db := MongoDb{}
 	if db.IsConnected() == true {
 		t.Fatalf("IsConnected not working")

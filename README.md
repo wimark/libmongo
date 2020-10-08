@@ -1,5 +1,7 @@
 # libmongo
 
-Almost fork of Mgohelpers.
+Wrapper for globalsign/mgo (ex standard mgo.v2 library). 
 
-Motivation -- needs more timeouts and low-level mgo features.
+## copyright
+
+Wimark Systems, 2017-2020.
