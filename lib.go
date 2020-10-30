@@ -2,6 +2,7 @@ package libmongo
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/globalsign/mgo"
@@ -10,24 +11,32 @@ import (
 
 const (
 	mongoConnectionTimeout = 15 * time.Second
+	mongoQueryTimeout      = 30 * time.Second // default maxTimeMS timeout for Query
 	errorNotConnected      = "DB is not connected"
 	errorNotValid          = "Query is not valid"
 )
 
 type MongoDb struct {
-	sess *mgo.Session
+	sync.RWMutex
+
+	sess      *mgo.Session
+	maxTimeMS time.Duration
 }
 
 type M = bson.M
 type D = bson.D
 
 func NewConnection(dsn string) (*MongoDb, error) {
-	var db = MongoDb{}
+	var db = MongoDb{
+		maxTimeMS: mongoQueryTimeout,
+	}
 	return &db, db.Connect(dsn)
 }
 
 func NewConnectionWithTimeout(dsn string, timeout time.Duration) (*MongoDb, error) {
-	var db = MongoDb{}
+	var db = MongoDb{
+		maxTimeMS: mongoQueryTimeout,
+	}
 	return &db, db.ConnectWithTimeout(dsn, timeout)
 }
 
@@ -53,6 +62,12 @@ func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration) error {
 	db.sess, err = mgo.DialWithTimeout(dsn, timeout)
 
 	return err
+}
+
+func (db *MongoDb) SetMaxTimeMS(d time.Duration) {
+	db.RWMutex.Lock()
+	db.maxTimeMS = d
+	db.RWMutex.Unlock()
 }
 
 func (db *MongoDb) Disconnect() {
@@ -151,7 +166,7 @@ func (db *MongoDb) Find(coll string, query map[string]interface{}, v interface{}
 		bsonQuery[k] = qv
 	}
 
-	return sess.DB("").C(coll).Find(bsonQuery).All(v)
+	return sess.DB("").C(coll).Find(bsonQuery).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
@@ -163,7 +178,7 @@ func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().All(v)
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
@@ -175,7 +190,7 @@ func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().One(v)
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(db.maxTimeMS).One(v)
 }
 
 func (db *MongoDb) FindByID(coll string, id string, v interface{}) bool {
@@ -187,7 +202,7 @@ func (db *MongoDb) FindByID(coll string, id string, v interface{}) bool {
 
 	defer sess.Close()
 
-	return mgo.ErrNotFound != sess.DB("").C(coll).FindId(id).One(v)
+	return mgo.ErrNotFound != sess.DB("").C(coll).FindId(id).SetMaxTime(db.maxTimeMS).One(v)
 }
 
 func (db *MongoDb) FindAll(coll string, v interface{}) error {
@@ -199,7 +214,7 @@ func (db *MongoDb) FindAll(coll string, v interface{}) error {
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(bson.M{}).All(v)
+	return sess.DB("").C(coll).Find(bson.M{}).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) error {
@@ -211,7 +226,7 @@ func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) 
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).One(v)
+	return sess.DB("").C(coll).Find(query).SetMaxTime(db.maxTimeMS).One(v)
 }
 
 func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{},
@@ -224,7 +239,7 @@ func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{},
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).Sort(order).One(v)
+	return sess.DB("").C(coll).Find(query).Sort(order).SetMaxTime(db.maxTimeMS).One(v)
 }
 
 func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{},
@@ -237,7 +252,7 @@ func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{},
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).Sort(order).All(v)
+	return sess.DB("").C(coll).Find(query).Sort(order).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitAll(coll string, query interface{},
@@ -250,7 +265,7 @@ func (db *MongoDb) FindWithQuerySortLimitAll(coll string, query interface{},
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).Sort(order).Limit(limit).All(v)
+	return sess.DB("").C(coll).Find(query).Sort(order).Limit(limit).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{}) error {
@@ -262,7 +277,7 @@ func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).One(v)
+	return sess.DB("").C(coll).Find(query).SetMaxTime(db.maxTimeMS).One(v)
 }
 
 func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{}) error {
@@ -274,7 +289,7 @@ func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).All(v)
+	return sess.DB("").C(coll).Find(query).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitOffsetAll(coll string, query interface{}, sort string,
@@ -287,7 +302,7 @@ func (db *MongoDb) FindWithQuerySortLimitOffsetAll(coll string, query interface{
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).Sort(sort).Limit(limit).Skip(offset).All(v)
+	return sess.DB("").C(coll).Find(query).Sort(sort).Limit(limit).Skip(offset).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitOffsetTotalAll(coll string, query interface{},
@@ -301,10 +316,10 @@ func (db *MongoDb) FindWithQuerySortLimitOffsetTotalAll(coll string, query inter
 	defer sess.Close()
 
 	if total != nil {
-		*total, _ = sess.DB("").C(coll).Find(query).Count()
+		*total, _ = sess.DB("").C(coll).Find(query).SetMaxTime(db.maxTimeMS).Count()
 	}
 
-	return sess.DB("").C(coll).Find(query).Sort(sort).Limit(limit).Skip(offset).All(v)
+	return sess.DB("").C(coll).Find(query).Sort(sort).Limit(limit).Skip(offset).SetMaxTime(db.maxTimeMS).All(v)
 }
 
 func (db *MongoDb) Count(coll string, query interface{}) (int, error) {
@@ -316,7 +331,7 @@ func (db *MongoDb) Count(coll string, query interface{}) (int, error) {
 
 	defer sess.Close()
 
-	return sess.DB("").C(coll).Find(query).Count()
+	return sess.DB("").C(coll).Find(query).SetMaxTime(db.maxTimeMS).Count()
 }
 
 func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
