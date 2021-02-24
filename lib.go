@@ -522,4 +522,14 @@ func (db *MongoDb)Run(dbname string,cmd bson.D,set interface{})error{
 	return sess.DB(dbname).Run(cmd,set)
 }
 
+func (db *MongoDb)CollectionNames()(names []string, err error){
+	if !db.IsConnected(){
+		return nil,fmt.Errorf("%s", errorNotConnected)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").CollectionNames()
+}
+
 func GetDb() *MongoDb { return &MongoDb{} }

@@ -1,6 +1,7 @@
  # changelog
  
  ## [v1.5.0]
+ - Add: CollectionNames func ()
  - Add: Run cmd func (654090b)
  - Add: Count func (d1528d2)
  - WNE-1565: Add: total to find with skip (515c4c6)
