@@ -1,7 +1,7 @@
  # changelog
  
  ## [v1.5.0]
- 
+ - Add: Run cmd func ()
  - Add: Count func (d1528d2)
  - WNE-1565: Add: total to find with skip (515c4c6)
  - Add Find with limit sort and skip (2473e0d)

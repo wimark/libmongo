@@ -511,4 +511,15 @@ func (db *MongoDb) SessClose(sess *mgo.Session) {
 	sess.Close()
 }
 
+func (db *MongoDb)Run(dbname string,cmd bson.D,set interface{})error{
+	if !db.IsConnected(){
+		return fmt.Errorf("%s", errorNotConnected)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+
+	return sess.DB(dbname).Run(cmd,set)
+}
+
 func GetDb() *MongoDb { return &MongoDb{} }
