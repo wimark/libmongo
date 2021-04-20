@@ -121,6 +121,19 @@ func (db *MongoDb) Insert(coll string, v ...interface{}) error {
 	return sess.DB("").C(coll).Insert(v...)
 }
 
+func (db *MongoDb) InsertWithCheckIsDup(coll string, v ...interface{}) (bool, error) {
+	if !db.IsConnected() {
+		return false, fmt.Errorf("%s", errorNotConnected)
+	}
+
+	var sess = db.sess.Copy()
+
+	defer sess.Close()
+
+	err := sess.DB("").C(coll).Insert(v...)
+	return mgo.IsDup(err), err
+}
+
 func (db *MongoDb) InsertBulk(coll string, v ...interface{}) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", errorNotConnected)
@@ -511,20 +524,19 @@ func (db *MongoDb) SessClose(sess *mgo.Session) {
 	sess.Close()
 }
 
-func (db *MongoDb)Run(dbname string,cmd bson.D,set interface{})error{
-	if !db.IsConnected(){
+func (db *MongoDb) Run(dbname string, cmd bson.D, set interface{}) error {
+	if !db.IsConnected() {
 		return fmt.Errorf("%s", errorNotConnected)
 	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
 
-
-	return sess.DB(dbname).Run(cmd,set)
+	return sess.DB(dbname).Run(cmd, set)
 }
 
-func (db *MongoDb)CollectionNames()(names []string, err error){
-	if !db.IsConnected(){
-		return nil,fmt.Errorf("%s", errorNotConnected)
+func (db *MongoDb) CollectionNames() (names []string, err error) {
+	if !db.IsConnected() {
+		return nil, fmt.Errorf("%s", errorNotConnected)
 	}
 	var sess = db.sess.Copy()
 	defer sess.Close()
