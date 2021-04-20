@@ -1,6 +1,7 @@
  # changelog
  
  ## [v1.5.0]
+ - Add: Insert with check on IsDup(f28d46c)
  - Add: CollectionNames func (4a69f4f)
  - Add: Run cmd func (654090b)
  - Add: Count func (d1528d2)
