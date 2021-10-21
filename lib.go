@@ -33,14 +33,6 @@ func NewConnection(dsn string) (*MongoDb, error) {
 	return &db, db.Connect(dsn)
 }
 
-func NewConnectionWitOutTimeOut(dsn string) (*MongoDb, error) {
-	sess, err := mgo.Dial(dsn)
-	if err != nil {
-		return nil, err
-	}
-	return &MongoDb{sess: sess}, err
-}
-
 func NewConnectionWithTimeout(dsn string, timeout time.Duration) (*MongoDb, error) {
 	var db = MongoDb{
 		maxTimeMS: mongoQueryTimeout,
@@ -200,6 +192,18 @@ func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 	defer sess.Close()
 
 	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(db.maxTimeMS).All(v)
+}
+
+func (db *MongoDb) PipeWithMaxTime(coll string, query []bson.M, v interface{}, maxTime time.Duration) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", errorNotConnected)
+	}
+
+	var sess = db.sess.Copy()
+
+	defer sess.Close()
+
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(maxTime).All(v)
 }
 
 func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
