@@ -202,8 +202,8 @@ func (db *MongoDb) PipeWithMaxTime(coll string, query []bson.M, v interface{}, m
 	var sess = db.sess.Copy()
 
 	defer sess.Close()
-
-	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(maxTime).All(v)
+	sess.SetCursorTimeout(maxTime)
+	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().All(v)
 }
 
 func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
