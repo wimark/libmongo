@@ -33,6 +33,14 @@ func NewConnection(dsn string) (*MongoDb, error) {
 	return &db, db.Connect(dsn)
 }
 
+func NewConnectionWitOutTimeOut(dsn string) (*MongoDb, error) {
+	sess, err := mgo.Dial(dsn)
+	if err != nil {
+		return nil, err
+	}
+	return &MongoDb{sess: sess}, err
+}
+
 func NewConnectionWithTimeout(dsn string, timeout time.Duration) (*MongoDb, error) {
 	var db = MongoDb{
 		maxTimeMS: mongoQueryTimeout,
