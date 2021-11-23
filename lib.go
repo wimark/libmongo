@@ -556,4 +556,15 @@ func (db *MongoDb) CollectionNames() (names []string, err error) {
 	return sess.DB("").CollectionNames()
 }
 
+func (db *MongoDb) Iter(coll string, query []bson.M, f func(iter *mgo.Iter) error) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", errorNotConnected)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	iter := sess.DB("").C(coll).Pipe(query).Iter()
+	return f(iter)
+}
+
 func GetDb() *MongoDb { return &MongoDb{} }
