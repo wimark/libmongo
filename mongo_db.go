@@ -35,7 +35,11 @@ func NewMongo(ctx context.Context, opts *MongoOptions) (*Mongo, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	return &Mongo{client: cli, dbName: opts.dbName}, cli.Connect(ctx)
+	err = cli.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &Mongo{client: cli, dbName: opts.dbName}, nil
 }
 
 // InsertOne - вставка документа
