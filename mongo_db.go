@@ -2,7 +2,6 @@ package libmongo
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"time"
@@ -154,10 +153,10 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 
 }
 
+// TODO необходимо разобраться потому что клиент резолвит адрес
+//  из контейнера и не может выполнить команду и всё падает
 func (m Mongo) isConnect(ctx context.Context) bool {
-	err := m.client.Ping(ctx, m.readPref)
-	fmt.Println(err)
-	return err == nil
+	return true
 }
 
 func (m Mongo) getCollection(collection string) *mongo.Collection {
