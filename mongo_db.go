@@ -2,6 +2,7 @@ package libmongo
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"time"
@@ -154,7 +155,9 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 }
 
 func (m Mongo) isConnect(ctx context.Context) bool {
-	return m.client.Ping(ctx, m.readPref) == nil
+	err := m.client.Ping(ctx, m.readPref)
+	fmt.Println(err)
+	return err == nil
 }
 
 func (m Mongo) getCollection(collection string) *mongo.Collection {
