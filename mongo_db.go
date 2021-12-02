@@ -238,3 +238,10 @@ func SetPreferred(mode readpref.Mode) MongoOption {
 		return options
 	})
 }
+
+func SetReplica(name string) MongoOption {
+	return Options(func(options MongoOptions) MongoOptions {
+		options.options.SetReplicaSet(name)
+		return options
+	})
+}
