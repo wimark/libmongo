@@ -21,8 +21,9 @@ var (
 
 // Mongo - обёртка над клиентом MongoDB
 type Mongo struct {
-	client *mongo.Client
-	dbName string
+	client   *mongo.Client
+	dbName   string
+	readPref *readpref.ReadPref
 }
 
 type Operation func(ctx context.Context) error
@@ -39,7 +40,7 @@ func NewMongo(ctx context.Context, opts *MongoOptions) (*Mongo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Mongo{client: cli, dbName: opts.dbName}, nil
+	return &Mongo{client: cli, dbName: opts.dbName, readPref: opts.readPref}, nil
 }
 
 // InsertOne - вставка документа
@@ -229,6 +230,7 @@ func SetPreferred(mode readpref.Mode) MongoOption {
 			pref, err := readpref.New(mode)
 			if err == nil {
 				options.options.SetReadPreference(pref)
+				options.readPref = pref
 			}
 		}
 		return options

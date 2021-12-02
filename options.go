@@ -23,15 +23,17 @@ func Combine(opts ...MongoOption) *MongoOptions {
 // "test" - имя БД по-умолчанию
 func newOptions() MongoOptions {
 	return MongoOptions{
-		options: options.Client().SetReadPreference(readpref.Secondary()),
-		dbName:  "test",
+		options:  options.Client().SetReadPreference(readpref.Secondary()),
+		dbName:   "test",
+		readPref: readpref.Secondary(),
 	}
 }
 
 // MongoOptions - обёртка над опциями подключения
 type MongoOptions struct {
-	options *options.ClientOptions
-	dbName  string
+	options  *options.ClientOptions
+	dbName   string
+	readPref *readpref.ReadPref
 }
 
 // Options - тип функции применяющий опции к подключению
