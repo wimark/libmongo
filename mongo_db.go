@@ -154,7 +154,7 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 }
 
 func (m Mongo) isConnect(ctx context.Context) bool {
-	return m.client.Ping(ctx, nil) == nil
+	return m.client.Ping(ctx, m.readPref) == nil
 }
 
 func (m Mongo) getCollection(collection string) *mongo.Collection {
