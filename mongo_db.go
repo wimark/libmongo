@@ -153,10 +153,8 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 
 }
 
-// TODO необходимо разобраться потому что клиент резолвит адрес
-//  из контейнера и не может выполнить команду и всё падает
 func (m Mongo) isConnect(ctx context.Context) bool {
-	return true
+	return m.client.Ping(ctx, m.readPref) == nil
 }
 
 func (m Mongo) getCollection(collection string) *mongo.Collection {
