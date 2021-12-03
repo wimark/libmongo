@@ -3,12 +3,12 @@ package libmongo
 import (
 	"context"
 	"reflect"
-
 	"time"
 
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
@@ -119,7 +119,7 @@ func (m Mongo) Aggregate(ctx context.Context, collection string, pipeline Pipeli
 	if !m.isConnect(ctx) {
 		return ErrClientDisconnect
 	}
-	cursor, err := m.getCollection(collection).Aggregate(ctx, pipeline)
+	cursor, err := m.getCollection(collection).Aggregate(ctx, pipeline, &options.AggregateOptions{AllowDiskUse: &[]bool{true}[0]})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -136,7 +136,7 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 		return ErrInterfaceSlice
 	}
 
-	cursor, err := m.getCollection(collection).Aggregate(ctx, pipeline)
+	cursor, err := m.getCollection(collection).Aggregate(ctx, pipeline, &options.AggregateOptions{AllowDiskUse: &[]bool{true}[0]})
 	if err != nil {
 		return errors.WithStack(err)
 	}
