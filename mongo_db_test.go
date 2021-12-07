@@ -2,7 +2,6 @@ package libmongo
 
 import (
 	"context"
-
 	"sort"
 	"testing"
 	"time"
@@ -190,6 +189,45 @@ func TestAggregate(t *testing.T) {
 		}
 	})
 
+}
+func TestUpdate(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewMongo(ctx, Combine(SetUri(mongoUri), SetTimeout(20*time.Second),
+		SetMaxPoolSize(20), SetPreferred(readpref.PrimaryMode)))
+	require.Equal(t, nil, err)
+	require.Equal(t, client != nil, true)
+
+	limit := 5
+	data, keys := generateData(limit)
+
+	err = client.InsertMany(ctx, "coll", data)
+	require.Equal(t, nil, err)
+
+	id := keys[0]
+	filter := bson.D{{"_id", id}}
+	update := bson.D{{"$set", bson.D{{"data", 111}}}}
+
+	err = client.UpdateMany(ctx, "coll", filter, update, false)
+	require.Equal(t, nil, err)
+
+	var result = &Data{}
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	require.Equal(t, err, nil)
+	require.Equal(t, &Data{ID: id, Data: 111}, result)
+
+	update = bson.D{{"$set", bson.D{{"data", 222}}}}
+	err = client.UpdateOne(ctx, "coll", filter, update, false)
+
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	require.Equal(t, err, nil)
+	require.Equal(t, &Data{ID: id, Data: 222}, result)
+
+	update = bson.D{{"$set", bson.D{{"data", 333}}}}
+	err = client.UpdateByID(ctx, "coll", id, update, false)
+
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	require.Equal(t, err, nil)
+	require.Equal(t, &Data{ID: id, Data: 333}, result)
 }
 
 func generateData(limit int) ([]Data, []string) {

@@ -114,7 +114,7 @@ func (m Mongo) DeleteOne(ctx context.Context, collection string, filter interfac
 	return nil
 }
 
-// Aggregate - аггрегация данных в кастомной функцией итерации
+// Aggregate - аггрегация данных c кастомной функцией итерации
 func (m Mongo) Aggregate(ctx context.Context, collection string, pipeline Pipeline, iterFunc CursorIterFunc) error {
 	if !m.isConnect(ctx) {
 		return ErrClientDisconnect
@@ -127,6 +127,7 @@ func (m Mongo) Aggregate(ctx context.Context, collection string, pipeline Pipeli
 	return errors.WithStack(iterFunc(cursor))
 }
 
+// AggregateAll  - аггрегация данных c библиотечной распаковкой
 func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pipeline, result interface{}) error {
 	if !m.isConnect(ctx) {
 		return ErrClientDisconnect
@@ -151,6 +152,36 @@ func (m Mongo) AggregateAll(ctx context.Context, collection string, pipeline Pip
 
 	return errors.WithStack(cursor.Close(ctx))
 
+}
+
+// UpdateMany - массовое обновление данных с upsert опцией
+func (m Mongo) UpdateMany(ctx context.Context, collection string, filter, update interface{}, upsert bool) error {
+	if !m.isConnect(ctx) {
+		return ErrClientDisconnect
+	}
+	opts := options.Update().SetUpsert(upsert)
+	_, err := m.getCollection(collection).UpdateMany(ctx, filter, update, opts)
+	return err
+}
+
+// UpdateOne - обновление одного документа с upsert опцией
+func (m Mongo) UpdateOne(ctx context.Context, collection string, filter, update interface{}, upsert bool) error {
+	if !m.isConnect(ctx) {
+		return ErrClientDisconnect
+	}
+	opts := options.Update().SetUpsert(upsert)
+	_, err := m.getCollection(collection).UpdateOne(ctx, filter, update, opts)
+	return err
+}
+
+// UpdateByID - обновление по id документа с upsert опцией
+func (m Mongo) UpdateByID(ctx context.Context, collection string, id, update interface{}, upsert bool) error {
+	if !m.isConnect(ctx) {
+		return ErrClientDisconnect
+	}
+	opts := options.Update().SetUpsert(upsert)
+	_, err := m.getCollection(collection).UpdateByID(ctx, id, update, opts)
+	return err
 }
 
 func (m Mongo) isConnect(ctx context.Context) bool {
