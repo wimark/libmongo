@@ -37,7 +37,7 @@ func TestCrudOperationMongo(t *testing.T) {
 
 	filter := bson.D{{"_id", d.ID}}
 	d2 := &Data{}
-	err = client.FindOne(ctx, "coll", filter, unmarshal(d2))
+	err = client.FindOne(ctx, "coll", filter, nil, unmarshal(d2))
 
 	require.Equal(t, nil, err)
 	require.Equal(t, d, *d2, "docs is not equal")
@@ -46,7 +46,7 @@ func TestCrudOperationMongo(t *testing.T) {
 	require.Equal(t, nil, err)
 
 	d3 := &Data{}
-	err = client.FindOne(ctx, "coll", filter, unmarshal(d3))
+	err = client.FindOne(ctx, "coll", filter, nil, unmarshal(d3))
 	require.Equal(t, ErrNotFound, err)
 
 	limit := 5
@@ -211,21 +211,21 @@ func TestUpdate(t *testing.T) {
 	require.Equal(t, nil, err)
 
 	var result = &Data{}
-	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, nil, unmarshal(&result))
 	require.Equal(t, err, nil)
 	require.Equal(t, &Data{ID: id, Data: 111}, result)
 
 	update = bson.D{{"$set", bson.D{{"data", 222}}}}
 	err = client.UpdateOne(ctx, "coll", filter, update, false)
 
-	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, nil, unmarshal(&result))
 	require.Equal(t, err, nil)
 	require.Equal(t, &Data{ID: id, Data: 222}, result)
 
 	update = bson.D{{"$set", bson.D{{"data", 333}}}}
 	err = client.UpdateByID(ctx, "coll", id, update, false)
 
-	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, unmarshal(&result))
+	err = client.FindOne(ctx, "coll", bson.D{{"_id", id}}, nil, unmarshal(&result))
 	require.Equal(t, err, nil)
 	require.Equal(t, &Data{ID: id, Data: 333}, result)
 }

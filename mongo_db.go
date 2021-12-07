@@ -76,12 +76,13 @@ func (m Mongo) InsertMany(ctx context.Context, collection string, value interfac
 }
 
 // FindOne - поиск документа с декодирование в переменную `value`
-func (m Mongo) FindOne(ctx context.Context, collection string, filter interface{}, decoded DecodeDocFunc) (err error) {
+func (m Mongo) FindOne(ctx context.Context, collection string, filter, sort interface{}, decoded DecodeDocFunc) (err error) {
 	if !m.isConnect(ctx) {
 		return ErrClientDisconnect
 	}
 	var res bson.M
-	err = m.getCollection(collection).FindOne(ctx, filter).Decode(&res)
+	var opts = options.FindOne().SetSort(sort)
+	err = m.getCollection(collection).FindOne(ctx, filter, opts).Decode(&res)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return ErrNotFound
 	} else if err != nil {
