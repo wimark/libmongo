@@ -229,7 +229,28 @@ func TestUpdate(t *testing.T) {
 	require.Equal(t, err, nil)
 	require.Equal(t, &Data{ID: id, Data: 333}, result)
 }
+func TestUpdateWithUpsert(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewMongo(ctx, Combine(SetUri(mongoUri), SetTimeout(20*time.Second),
+		SetMaxPoolSize(20), SetPreferred(readpref.PrimaryMode)))
+	require.Equal(t, nil, err)
+	require.Equal(t, client != nil, true)
 
+	id := uuid.New().String()
+
+	filter := bson.D{{"_id", id}}
+	update := bson.D{{"$set", bson.D{{"data", 4}}}}
+	err = client.UpdateOne(ctx, "coll", filter, update, true)
+	require.Equal(t, nil, err)
+
+	doc := struct {
+		ID   string `json:"id" bson:"_id"`
+		Data int    `json:"data" bson:"data"`
+	}{}
+	err = client.FindOne(ctx, "coll", filter, nil, unmarshal(&doc))
+	require.Equal(t, id, doc.ID)
+
+}
 func generateData(limit int) ([]Data, []string) {
 	var data []Data
 	var keys []string
