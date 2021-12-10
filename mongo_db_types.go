@@ -1,5 +1,5 @@
 package libmongo
 
-import "github.com/globalsign/mgo/bson"
+import "go.mongodb.org/mongo-driver/bson"
 
 type Pipeline []bson.M

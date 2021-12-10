@@ -182,6 +182,14 @@ func TestAggregate(t *testing.T) {
 		}
 	})
 
+	t.Run("AggregateWithUnmarshalFunc", func(t *testing.T) {
+		var res []Data
+		err = client.Aggregate(ctx, "coll", pipe, sliceUnmarshal(ctx, &res))
+		for _, r := range res {
+			require.Equal(t, true, r.Data >= 3)
+		}
+	})
+
 	t.Run("AggregateWithError", func(t *testing.T) {
 		for _, i := range []interface{}{[]Data{}, Data{}, &Data{}, nil} {
 			err = client.AggregateAll(ctx, "coll", pipe, i)
@@ -271,5 +279,16 @@ func unmarshal(i interface{}) func(m bson.M) error {
 			return err
 		}
 		return bson.Unmarshal(b, i)
+	}
+}
+func sliceUnmarshal(ctx context.Context, i interface{}) CursorIterFunc {
+	return func(cursor *mongo.Cursor) error {
+		if err := cursor.All(ctx, i); err != nil {
+			return err
+		}
+		if err := cursor.Err(); err != nil {
+			return err
+		}
+		return cursor.Close(ctx)
 	}
 }
