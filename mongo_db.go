@@ -185,6 +185,13 @@ func (m Mongo) UpdateByID(ctx context.Context, collection string, id, update int
 	return err
 }
 
+func (m Mongo) Count(ctx context.Context, collection string, filter interface{}) (int64, error) {
+	if !m.isConnect(ctx) {
+		return 0, ErrClientDisconnect
+	}
+	return m.getCollection(collection).CountDocuments(ctx, filter)
+}
+
 func (m Mongo) isConnect(ctx context.Context) bool {
 	return m.client.Ping(ctx, m.readPref) == nil
 }

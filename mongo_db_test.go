@@ -257,8 +257,26 @@ func TestUpdateWithUpsert(t *testing.T) {
 	}{}
 	err = client.FindOne(ctx, "coll", filter, nil, unmarshal(&doc))
 	require.Equal(t, id, doc.ID)
-
 }
+
+func TestCount(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewMongo(ctx, Combine(SetUri(mongoUri), SetTimeout(20*time.Second),
+		SetMaxPoolSize(20), SetPreferred(readpref.PrimaryMode)))
+	require.Equal(t, nil, err)
+	require.Equal(t, client != nil, true)
+
+	limit := 5
+	data, _ := generateData(limit)
+
+	err = client.InsertMany(ctx, "coll", data)
+	require.Equal(t, nil, err)
+
+	count, err := client.Count(ctx, "coll", bson.D{{"data", bson.D{{"$gte", 3}}}})
+	require.Equal(t, nil, err)
+	require.Equal(t, int64(3), count)
+}
+
 func generateData(limit int) ([]Data, []string) {
 	var data []Data
 	var keys []string
