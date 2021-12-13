@@ -36,6 +36,15 @@ type MongoOptions struct {
 	readPref *readpref.ReadPref
 }
 
+// ClientOptions - возвраз опций для подключен для клиента
+func (m MongoOptions) ClientOptions() *options.ClientOptions {
+	return m.options
+}
+
+func (m MongoOptions) DBName() string {
+	return m.dbName
+}
+
 // Options - тип функции применяющий опции к подключению
 type Options func(MongoOptions) MongoOptions
 
