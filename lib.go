@@ -38,13 +38,17 @@ func NewConnection(dsn string) (*MongoDb, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &MongoDb{
 		ctx:       context.Background(),
 		dbName:    mongoOptions.DBName(),
 		client:    client,
 		maxTimeMS: mongoQueryTimeout,
-	}, client.Connect(ctx)
+	}, nil
 }
 
 func (db *MongoDb) getCollection(coll string) *mongo.Collection {
