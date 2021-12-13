@@ -80,6 +80,8 @@ func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration, mode re
 
 	var err error
 	mongoOptions := Combine(SetUri(dsn), SetTimeout(timeout), SetPreferred(mode), SetMaxPoolSize(20))
+	db.dbName = mongoOptions.DBName()
+
 	db.client, err = mongo.NewClient(mongoOptions.ClientOptions())
 	if err != nil {
 		return err

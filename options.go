@@ -14,7 +14,7 @@ type MongoOption interface {
 func Combine(opts ...MongoOption) *MongoOptions {
 	clientOpts := newOptions()
 	for i := len(opts) - 1; i >= 0; i-- {
-		opts[i].apply(clientOpts)
+		clientOpts = opts[i].apply(clientOpts)
 	}
 	return &clientOpts
 }
