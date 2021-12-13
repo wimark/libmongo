@@ -23,7 +23,7 @@ func Combine(opts ...MongoOption) *MongoOptions {
 // "test" - имя БД по-умолчанию
 func newOptions() MongoOptions {
 	return MongoOptions{
-		options:  options.Client().SetReadPreference(readpref.Secondary()),
+		options:  options.Client().SetReadPreference(readpref.Primary()),
 		dbName:   "test",
 		readPref: readpref.Secondary(),
 	}

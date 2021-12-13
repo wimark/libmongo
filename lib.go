@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 const (
@@ -31,9 +32,9 @@ type MongoDb struct {
 type M = bson.M
 type D = bson.D
 
-func NewConnection(dsn string) (*MongoDb, error) {
+func NewConnection(dsn string, mode readpref.Mode) (*MongoDb, error) {
 	ctx := context.Background()
-	mongoOptions := Combine(SetUri(dsn), SetTimeout(mongoQueryTimeout), SetMaxPoolSize(20))
+	mongoOptions := Combine(SetUri(dsn), SetPreferred(mode), SetTimeout(mongoQueryTimeout), SetMaxPoolSize(20))
 	client, err := mongo.Connect(ctx, mongoOptions.ClientOptions())
 	if err != nil {
 		return nil, err
@@ -55,12 +56,12 @@ func (db *MongoDb) getCollection(coll string) *mongo.Collection {
 	return db.client.Database(db.dbName).Collection(coll)
 }
 
-func NewConnectionWithTimeout(dsn string, timeout time.Duration) (*MongoDb, error) {
+func NewConnectionWithTimeout(dsn string, timeout time.Duration, mode readpref.Mode) (*MongoDb, error) {
 	var db = MongoDb{
 		maxTimeMS: mongoQueryTimeout,
 		ctx:       context.Background(),
 	}
-	return &db, db.ConnectWithTimeout(dsn, timeout)
+	return &db, db.ConnectWithTimeout(dsn, timeout, mode)
 }
 
 func (db *MongoDb) IsConnected() bool {
@@ -71,14 +72,14 @@ func (db *MongoDb) Connect(_ string) error {
 	return db.client.Connect(db.ctx)
 }
 
-func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration) error {
+func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration, mode readpref.Mode) error {
 
 	if timeout < time.Second {
 		timeout = mongoConnectionTimeout
 	}
 
 	var err error
-	mongoOptions := Combine(SetUri(dsn), SetTimeout(timeout), SetMaxPoolSize(20))
+	mongoOptions := Combine(SetUri(dsn), SetTimeout(timeout), SetPreferred(mode), SetMaxPoolSize(20))
 	db.client, err = mongo.Connect(db.ctx, mongoOptions.ClientOptions())
 	if err != nil {
 		return err
