@@ -35,7 +35,7 @@ type D = bson.D
 func NewConnection(dsn string, mode readpref.Mode) (*MongoDb, error) {
 	ctx := context.Background()
 	mongoOptions := Combine(SetUri(dsn), SetPreferred(mode), SetTimeout(mongoQueryTimeout), SetMaxPoolSize(20))
-	client, err := mongo.Connect(ctx, mongoOptions.ClientOptions())
+	client, err := mongo.NewClient(mongoOptions.ClientOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration, mode re
 
 	var err error
 	mongoOptions := Combine(SetUri(dsn), SetTimeout(timeout), SetPreferred(mode), SetMaxPoolSize(20))
-	db.client, err = mongo.Connect(db.ctx, mongoOptions.ClientOptions())
+	db.client, err = mongo.NewClient(mongoOptions.ClientOptions())
 	if err != nil {
 		return err
 	}
