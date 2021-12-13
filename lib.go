@@ -240,9 +240,17 @@ func (db *MongoDb) PipeWithMaxTime(coll string, query []bson.M, v interface{}, m
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
 
-	return cursor.All(db.ctx, v)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
+
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
@@ -258,9 +266,17 @@ func (db *MongoDb) PipeOne(coll string, query []bson.M, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
 
-	return bson.Unmarshal(cursor.Current, v)
+	for cursor.Next(db.ctx) {
+		if err = cursor.Decode(v); err != nil {
+			return nil
+		}
+	}
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindByID(coll string, id string, v interface{}) bool {
@@ -296,9 +312,16 @@ func (db *MongoDb) FindAll(coll string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) error {
@@ -315,8 +338,16 @@ func (db *MongoDb) FindWithQuery(coll string, query interface{}, v interface{}) 
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
-	return cursor.All(db.ctx, v)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
+
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{},
@@ -335,9 +366,18 @@ func (db *MongoDb) FindWithQuerySortOne(coll string, query interface{},
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
 
-	return bson.Unmarshal(cursor.Current, v)
+	for cursor.Next(db.ctx) {
+		if err = cursor.Decode(v); err == nil {
+			return nil
+		}
+	}
+
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{},
@@ -355,9 +395,16 @@ func (db *MongoDb) FindWithQuerySortAll(coll string, query interface{},
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitAll(coll string, query interface{},
@@ -377,9 +424,16 @@ func (db *MongoDb) FindWithQuerySortLimitAll(coll string, query interface{},
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{}) error {
@@ -394,9 +448,22 @@ func (db *MongoDb) FindWithQueryOne(coll string, query interface{}, v interface{
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return bson.Unmarshal(cursor.Current, v)
+	for cursor.Next(db.ctx) {
+		if err = cursor.Decode(v); err == nil {
+			break
+		}
+	}
+
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{}) error {
@@ -411,9 +478,16 @@ func (db *MongoDb) FindWithQueryAll(coll string, query interface{}, v interface{
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitOffsetAll(coll string, query interface{}, sort D,
@@ -433,9 +507,16 @@ func (db *MongoDb) FindWithQuerySortLimitOffsetAll(coll string, query interface{
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) FindWithQuerySortLimitOffsetTotalAll(coll string, query interface{},
@@ -464,9 +545,16 @@ func (db *MongoDb) FindWithQuerySortLimitOffsetTotalAll(coll string, query inter
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(db.ctx)
+	err = cursor.All(db.ctx, v)
+	if err != nil {
+		return err
+	}
 
-	return cursor.All(db.ctx, v)
+	if err = cursor.Err(); err != nil {
+		return err
+	}
+
+	return cursor.Close(db.ctx)
 }
 
 func (db *MongoDb) Count(coll string, query interface{}) (int, error) {
@@ -502,7 +590,7 @@ func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface
 	}
 
 	collection := db.getCollection(coll)
-	_, err := collection.UpdateOne(db.ctx, query, set)
+	_, err := collection.UpdateOne(db.ctx, query, bson.M{"$set": set})
 	return err
 }
 
@@ -512,7 +600,7 @@ func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interf
 	}
 
 	collection := db.getCollection(coll)
-	_, err := collection.UpdateMany(db.ctx, query, set)
+	_, err := collection.UpdateMany(db.ctx, query, bson.M{"$set": set})
 
 	return err
 }
@@ -535,7 +623,7 @@ func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface
 
 	collection := db.getCollection(coll)
 	opts := options.Update().SetUpsert(true)
-	_, err := collection.UpdateOne(db.ctx, query, set, opts)
+	_, err := collection.UpdateOne(db.ctx, query, bson.M{"$set": set}, opts)
 	return err
 }
 
