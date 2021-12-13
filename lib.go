@@ -65,7 +65,7 @@ func NewConnectionWithTimeout(dsn string, timeout time.Duration, mode readpref.M
 }
 
 func (db *MongoDb) IsConnected() bool {
-	return db.client.Ping(db.ctx, nil) != nil
+	return db != nil
 }
 
 func (db *MongoDb) Connect(_ string) error {
