@@ -1,6 +1,23 @@
  # changelog
  
- ## [v1.5.0]
+## [v1.6.0]
+
+ - add iter cursor (d11aa70)
+ - set cursor timeout (98a6a9b)
+ - del connection without timeout. set time max func pipe (1470d0b)
+ - add connection without timeout (21a2b03)
+ - Add: Insert with check on IsDup (e3c2661)
+ - Add: Insert with check on IsDup (f28d46c)
+ - Add: CollectionNames (c42eac1)
+ - Add: CollectionNames (4a69f4f)
+ - Add: Run cmd func (52fa3f6)
+ - Add: Run cmd func (654090b)
+ - Add: MaxTimeMS fo Query time limit (ce3ae73)
+ - Release: v1.5.0 (2b6e7d7)
+ - Add: Count func (96c32a7)
+ - Add: Count func (d1528d2)
+
+## [v1.5.0]
  - Add: Insert with check on IsDup(f28d46c)
  - Add: CollectionNames func (4a69f4f)
  - Add: Run cmd func (654090b)
