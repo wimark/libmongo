@@ -1,4 +1,4 @@
-module bitbucket.org/wimarksystems/libmongo
+module github.com/wimark/libmongo
 
 go 1.15
 
