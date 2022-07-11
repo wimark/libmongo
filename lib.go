@@ -48,7 +48,7 @@ func (db *MongoDb) Connect(dsn string) error {
 	var err error
 
 	db.sess, err = mgo.DialWithTimeout(dsn, mongoConnectionTimeout)
-
+	db.sess.SetSafe(&mgo.Safe{WMode: "majority"})
 	return err
 }
 
@@ -60,7 +60,7 @@ func (db *MongoDb) ConnectWithTimeout(dsn string, timeout time.Duration) error {
 	}
 
 	db.sess, err = mgo.DialWithTimeout(dsn, timeout)
-
+	db.sess.SetSafe(&mgo.Safe{WMode: "majority"})
 	return err
 }
 
