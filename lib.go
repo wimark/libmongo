@@ -371,12 +371,15 @@ func (db *MongoDb) Update(coll string, id interface{}, v interface{}) error {
 	return sess.DB("").C(coll).Update(bson.M{"_id": id}, bson.M{"$set": v})
 }
 
-func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface{}) error {
+func (db *MongoDb) UpdateWithQuery(coll string, query interface{}, set interface{}, opts ...func(session *mgo.Session)) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", errorNotConnected)
 	}
 
 	var sess = db.sess.Copy()
+	for _, opt := range opts {
+		opt(sess)
+	}
 
 	defer sess.Close()
 
