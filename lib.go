@@ -26,6 +26,8 @@ type MongoDb struct {
 type M = bson.M
 type D = bson.D
 
+type ChangeInfo *mgo.ChangeInfo
+
 func NewConnection(dsn string) (*MongoDb, error) {
 	var db = MongoDb{
 		maxTimeMS: mongoQueryTimeout,
@@ -403,18 +405,16 @@ func (db *MongoDb) UpdateWithQueryAll(coll string, query interface{}, set interf
 	return err
 }
 
-func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) error {
+func (db *MongoDb) Upsert(coll string, id interface{}, v interface{}) (ChangeInfo, error) {
 	if !db.IsConnected() {
-		return fmt.Errorf("%s", errorNotConnected)
+		return nil, fmt.Errorf("%s", errorNotConnected)
 	}
 
 	var sess = db.sess.Copy()
 
 	defer sess.Close()
 
-	var _, err = sess.DB("").C(coll).Upsert(bson.M{"_id": id}, v)
-
-	return err
+	return sess.DB("").C(coll).Upsert(bson.M{"_id": id}, v)
 }
 
 func (db *MongoDb) UpsertWithQuery(coll string, query interface{}, set interface{}) error {
