@@ -196,15 +196,18 @@ func (db *MongoDb) Pipe(coll string, query []bson.M, v interface{}) error {
 	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().SetMaxTime(db.maxTimeMS).All(v)
 }
 
-func (db *MongoDb) PipeWithMaxTime(coll string, query []bson.M, v interface{}, maxTime time.Duration) error {
+func (db *MongoDb) PipeWithSocketTimeOut(coll string, query []bson.M, v interface{}, timeOut time.Duration) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", errorNotConnected)
 	}
 
 	var sess = db.sess.Copy()
-
 	defer sess.Close()
-	sess.SetCursorTimeout(maxTime)
+
+	if timeOut != 0 {
+		sess.SetSocketTimeout(timeOut)
+	}
+
 	return sess.DB("").C(coll).Pipe(query).AllowDiskUse().All(v)
 }
 
