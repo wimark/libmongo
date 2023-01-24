@@ -122,7 +122,7 @@ func (db *MongoDb) InsertBulk(coll string, v ...interface{}) error {
 
 	b := db.client.Database(db.database).Collection(coll).Bulk()
 	b.SetOrdered(false)
-	for vv := range v {
+	for _, vv := range v {
 		b.InsertOne(vv)
 	}
 	_, err := b.Run(ctx)
