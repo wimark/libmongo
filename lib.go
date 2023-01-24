@@ -88,7 +88,19 @@ func (db *MongoDb) Disconnect() {
 	}
 }
 
-func (db *MongoDb) Insert(coll string, v ...interface{}) error {
+func (db *MongoDb) Insert(coll string, v interface{}) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", errorNotConnected)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), db.maxTimeMS)
+	defer cancel()
+
+	_, err := db.client.Database(db.database).Collection(coll).InsertOne(ctx, v)
+	return err
+}
+
+func (db *MongoDb) InsertMany(coll string, v interface{}) error {
 	if !db.IsConnected() {
 		return fmt.Errorf("%s", errorNotConnected)
 	}
