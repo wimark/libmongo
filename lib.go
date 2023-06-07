@@ -571,4 +571,14 @@ func (db *MongoDb) Iter(coll string, query []bson.M, f func(iter *mgo.Iter) erro
 	return f(iter)
 }
 
+func (db *MongoDb) EnsureIndex(coll string, index mgo.Index) error {
+	if !db.IsConnected() {
+		return fmt.Errorf("%s", errorNotConnected)
+	}
+	var sess = db.sess.Copy()
+	defer sess.Close()
+
+	return sess.DB("").C(coll).EnsureIndex(index)
+}
+
 func GetDb() *MongoDb { return &MongoDb{} }
